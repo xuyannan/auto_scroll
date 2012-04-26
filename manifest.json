@@ -1,0 +1,25 @@
+{
+  "name" : "Auto Scroll",
+  "version" : "0.1",
+  "description" : "Scroll the page to the position that you left last time",
+  "permissions": [
+    "tabs", "http://*/*", "https://*/*","extension" , "unlimitedStorage"
+  ],
+  "content_scripts" : [
+    {
+      "matches" : ["http://*/*", "https://*/*"],
+      "js" : ["auto_scroll.js"]
+    }
+  ],
+  "icons" : {
+    "16" : "auto_scroll_16.png",
+    "48" : "auto_scroll_16.png",
+    "128" : "auto_scroll_16.png"
+  },
+  "background" : {
+      "scripts" : ["background.js"]
+  },
+  "browser_action" : {
+    "default_icon" : "auto_scroll_16.png"
+  }
+}
