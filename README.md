@@ -12,8 +12,14 @@ Scroll the page to the position that you left last time
 
 # TODO:
 
-1.改为page_action实现
+1.改为page_action实现 (done)
 
 2.云存储
 
 3.弄个好看点的logo
+
+# change log
+
+## v0.2
+
+改为page action实现，这样就能针对某个页面进行位置记忆了

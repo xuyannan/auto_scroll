@@ -1,6 +1,6 @@
 {
   "name" : "Auto Scroll",
-  "version" : "0.1",
+  "version" : "0.2",
   "description" : "Scroll the page to the position that you left last time",
   "permissions": [
     "tabs", "http://*/*", "https://*/*","extension" , "unlimitedStorage"
@@ -19,8 +19,8 @@
   "background" : {
       "scripts" : ["background.js"]
   },
-  "browser_action" : {
-    "default_title" : "auto scroll",
+  "page_action" : {
+    "default_icon" : "auto scroll",
     "default_icon" : "auto_scroll_16.png"
   }
 }
