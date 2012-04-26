@@ -11,3 +11,7 @@ Scroll the page to the position that you left last time
 
 将auto_scroll.crx插入chrome即可
 
+TODO:
+
+1.改为page_action实现
+2.云存储
