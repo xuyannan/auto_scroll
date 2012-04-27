@@ -17,7 +17,7 @@
     "128" : "auto_scroll_16.png"
   },
   "background" : {
-      "scripts" : ["background.js"]
+      "scripts" : ["jquery.min.js" , "background.js"]
   },
   "page_action" : {
     "default_icon" : "auto scroll",

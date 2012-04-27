@@ -13,15 +13,77 @@ var get_memories = function(){
   return JSON.parse(localStorage.memories);
 };
 
+var merge_data = function(params){
+  //method:0:使用server的数据，1,使用本地数据, 2,merge
+  if(params.method == 0) {
+    update_memories(params.server);
+  }else if(params.method == 1 ) {
+    update_memories(params.local);
+  }else if(params.method == 2 ) {
+    //TODO:how to merge?
+    update_memories(params.server);
+  }
+};
+
+// download memories from server
+var download_data = function(params){
+  jQuery.ajax({
+    'type' : 'get',
+    'url' : 'http://autoscroll.cutefool.net/download',
+    'dataType' : 'json',
+    'data' : {'key' : params.key},
+    'success' : function(obj) {
+      if(obj.code != 0 ) {
+        log(obj.msg);return false;
+      }
+      merge_data({'local' : get_memories() , 'server' : obj.data , 'method' : 0});
+    },
+    'error' : function(obj) {
+      log('error');
+      log(obj);
+    }
+  });
+};
+
+// 数据同步至服务器
+var update_data = function(params){
+  log('updating data ...');
+  var memories = get_memories();
+  jQuery.ajax({
+    'type' : 'get',
+    'url' : 'http://autoscroll.cutefool.net/store',
+    'dataType' : 'json',
+    'data' : 'data=' + JSON.stringify(memories),
+    'success' : function(obj) {
+      log('success');
+      log(obj);
+    },
+    'erroe' : function(obj) {
+      log('error');
+      log(obj);
+    }
+  });
+};
+
+download_data({
+  'key' : 'xyn0563@gmail.com'
+});
+
 //tab打开时，传送scroll 百分比
 chrome.tabs.onUpdated.addListener(function(tabId , updateInfo , tab) {
   var loc = tab.url;
   //更新数据
-  var memories = get_memories();
+  var memories = get_memories();//为啥还要再parse一下？
   //show page action while tab is open
   //TODO:建立显示page action的规则
   chrome.pageAction.show(tabId);
   if( memories[loc] ) {
+    //tab 关闭时，将localStorage同步至服务器
+    chrome.tabs.onRemoved.addListener(function(tabId) {
+      update_data({
+      });
+    });
+
     chrome.pageAction.setIcon({
       'tabId' : tabId,
       path : 'auto_scroll_active_16.png'
@@ -44,7 +106,7 @@ chrome.tabs.onUpdated.addListener(function(tabId , updateInfo , tab) {
       });
     });
   } else {
-    console.log('no data for ' + loc);
+    //console.log('no data for ' + loc);
     chrome.pageAction.setTitle({
       'tabId' : tabId,
       title : 'enable auto scroll for this page'
