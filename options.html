@@ -1,0 +1,47 @@
+<html>
+    <head>
+        <title>Auto Scroll Options</title>
+        <script type="text/javascript" src="jquery.min.js"></script>
+    </head>
+    <body>
+    	<div>
+          <p><label for="name">email :</label><input type="email" name="email" id="email"/></p>
+          <p><label for="password">password :</label><input type="password" name="password" id="password"/></p>
+          <p><input type="button" value="Login" id="btn_login"/> or <a href="http://autoscroll.cutefool.net">register</a></p>
+    	</div>
+      <div id="message"></div>
+    </body>
+</html>
+<script type="text/javascript">
+    jQuery(document).ready(function(){
+        var validate_email = function(str) {
+          if( ! str ) return false;
+          return /\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*/.test(str);
+        };
+        var validate_password = function(str) {
+          return true;
+        };
+        jQuery('#btn_login').click(function(){
+            var email = jQuery('#email').val();
+            var password = jQuery('#password').val();
+            if(!validate_email(email)){return false;}
+            //TODO:输入验证
+            jQuery.ajax({
+              'type' : 'get',
+              'url' : 'http://autoscroll.cutefool.net/login',
+              'dataType' : 'json',
+              'data' : {'email' : email , 'password' : password},
+              'success' : function(obj) {
+                if( obj.code != 0 ) {
+                  return false;
+                }
+                $('#message').html(obj.data.token);
+                //TODO:send message to background
+              },
+              'error' : function(obj) {
+                $('#message').html(obj.msg);
+              }
+            });
+        });
+    });
+</script>

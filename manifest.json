@@ -5,6 +5,7 @@
   "permissions": [
     "tabs", "http://*/*", "https://*/*","extension" , "unlimitedStorage"
   ],
+  "options_page": "options.html",
   "content_scripts" : [
     {
       "matches" : ["http://*/*", "https://*/*"],
