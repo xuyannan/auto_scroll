@@ -2,6 +2,8 @@ var log = function(obj) {
   console.log(obj);
 };
 
+var tabIds = {};
+
 var update_memories = function(m) {
   localStorage.memories = JSON.stringify(m);
 };
@@ -33,6 +35,7 @@ var download_data = function(params){
     'dataType' : 'json',
     'data' : {'key' : params.key},
     'success' : function(obj) {
+      log(obj);
       if(obj.code != 0 ) {
         log(obj.msg);return false;
       }
@@ -69,6 +72,15 @@ download_data({
   'key' : 'xyn0563@gmail.com'
 });
 
+//tab 关闭时，将localStorage同步至服务器
+chrome.tabs.onRemoved.addListener(function(tabId) {
+  log('tab closing ...');
+  if(tabIds[tabId]) {
+    update_data({
+    });
+  }
+});
+
 //tab打开时，传送scroll 百分比
 chrome.tabs.onUpdated.addListener(function(tabId , updateInfo , tab) {
   var loc = tab.url;
@@ -77,13 +89,9 @@ chrome.tabs.onUpdated.addListener(function(tabId , updateInfo , tab) {
   //show page action while tab is open
   //TODO:建立显示page action的规则
   chrome.pageAction.show(tabId);
-  if( memories[loc] ) {
-    //tab 关闭时，将localStorage同步至服务器
-    chrome.tabs.onRemoved.addListener(function(tabId) {
-      update_data({
-      });
-    });
 
+  if( memories[loc] ) {
+    tabIds[tabId] = 1;//记录tabId，标识是被记录的页面
     chrome.pageAction.setIcon({
       'tabId' : tabId,
       path : 'auto_scroll_active_16.png'
@@ -122,17 +130,19 @@ chrome.pageAction.onClicked.addListener(function(tab) {
     log('clear memory of ' + loc);
     memories[loc] = undefined;
     delete memories[loc];
+    delete tabIds[tab.id];
     chrome.pageAction.setIcon({
       'tabId' : tab.id,
       path : 'auto_scroll_16.png'
     });
   } else {
-    log('remember' + loc);
+    log('remember ' + loc);
     chrome.pageAction.setIcon({
       'tabId' : tab.id,
       path : 'auto_scroll_active_16.png'
     });
     memories[loc] = {'percent' : 0};
+    tabIds[tab.id] = 1;
   }
   update_memories(memories);
 });
