@@ -16,7 +16,7 @@ var get_memories = function(){
 };
 
 var merge_data = function(params){
-  //method:0:使用server的数据，1,使用本地数据, 2,merge
+//method:0:使用server的数据，1,使用本地数据, 2,merge
   if(params.method == 0) {
     update_memories(params.server);
   }else if(params.method == 1 ) {
@@ -35,11 +35,10 @@ var download_data = function(params){
     'dataType' : 'json',
     'data' : {'key' : params.key},
     'success' : function(obj) {
-      log(obj);
       if(obj.code != 0 ) {
         log(obj.msg);return false;
       }
-      merge_data({'local' : get_memories() , 'server' : obj.data , 'method' : 0});
+      merge_data({'local' : get_memories() , 'server' : JSON.parse(obj.data) , 'method' : 0});
     },
     'error' : function(obj) {
       log('error');
@@ -49,8 +48,8 @@ var download_data = function(params){
 };
 
 // 数据同步至服务器
-var update_data = function(params){
-  log('updating data ...');
+var upload_data = function(params){
+  log('uploading data ...');
   var memories = get_memories();
   jQuery.ajax({
     'type' : 'get',
@@ -58,11 +57,10 @@ var update_data = function(params){
     'dataType' : 'json',
     'data' : 'data=' + JSON.stringify(memories),
     'success' : function(obj) {
-      log('success');
-      log(obj);
+      log('upload success');
     },
     'erroe' : function(obj) {
-      log('error');
+      log('upload error');
       log(obj);
     }
   });
@@ -74,9 +72,8 @@ download_data({
 
 //tab 关闭时，将localStorage同步至服务器
 chrome.tabs.onRemoved.addListener(function(tabId) {
-  log('tab closing ...');
   if(tabIds[tabId]) {
-    update_data({
+    upload_data({
     });
   }
 });
@@ -89,13 +86,14 @@ chrome.tabs.onUpdated.addListener(function(tabId , updateInfo , tab) {
   //show page action while tab is open
   //TODO:建立显示page action的规则
   chrome.pageAction.show(tabId);
-
+  log(memories);
   if( memories[loc] ) {
     tabIds[tabId] = 1;//记录tabId，标识是被记录的页面
     chrome.pageAction.setIcon({
       'tabId' : tabId,
       path : 'auto_scroll_active_16.png'
     });
+    chrome.pageAction.show(tabId);
     chrome.pageAction.setTitle({
       'tabId' : tabId,
       title : 'disable auto scroll for this page'
@@ -119,6 +117,7 @@ chrome.tabs.onUpdated.addListener(function(tabId , updateInfo , tab) {
       'tabId' : tabId,
       title : 'enable auto scroll for this page'
     });
+    chrome.pageAction.show(tabId);
   }
 });
 
