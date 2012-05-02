@@ -3,7 +3,7 @@
   "version" : "0.2",
   "description" : "Scroll the page to the position that you left last time",
   "permissions": [
-    "tabs", "http://*/*", "https://*/*","extension" , "unlimitedStorage"
+    "tabs", "http://*/*", "https://*/*", "unlimitedStorage"
   ],
   "options_page": "options.html",
   "content_scripts" : [

@@ -4,44 +4,75 @@
         <script type="text/javascript" src="jquery.min.js"></script>
     </head>
     <body>
-    	<div>
+      <h2>Auto Scroll options</h2>
+    	<div id="login" style="display:none">
           <p><label for="name">email :</label><input type="email" name="email" id="email"/></p>
           <p><label for="password">password :</label><input type="password" name="password" id="password"/></p>
-          <p><input type="button" value="Login" id="btn_login"/> or <a href="http://autoscroll.cutefool.net">register</a></p>
+          <p><input type="button" value="Login" id="btn_login"/> or <a target="_blank" href="http://autoscroll.cutefool.net/newuser">register</a></p>
     	</div>
+      <div id="oncloud" style="display:none">You are on the cloud !
+          <p><a id="btn_logout" href="javascript:;">Logout</a></p>
+      </div>
       <div id="message"></div>
     </body>
 </html>
 <script type="text/javascript">
     jQuery(document).ready(function(){
-        var validate_email = function(str) {
-          if( ! str ) return false;
-          return /\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*/.test(str);
+        var bkg = chrome.extension.getBackgroundPage();
+        var on_the_cloud = function() {
+          $('#oncloud').show();
+          $('#login').hide();
+          $('#btn_logout').unbind().bind('click' , function(){
+              bkg.logout();
+              $('#oncloud').hide();
+              $('#login').show();
+          });
         };
-        var validate_password = function(str) {
-          return true;
-        };
-        jQuery('#btn_login').click(function(){
-            var email = jQuery('#email').val();
-            var password = jQuery('#password').val();
-            if(!validate_email(email)){return false;}
-            //TODO:输入验证
-            jQuery.ajax({
-              'type' : 'get',
-              'url' : 'http://autoscroll.cutefool.net/login',
-              'dataType' : 'json',
-              'data' : {'email' : email , 'password' : password},
-              'success' : function(obj) {
-                if( obj.code != 0 ) {
-                  return false;
+        if(bkg.settings.token) {
+          on_the_cloud();
+          return false;
+        }else {
+          $('#login').show();
+          var BASE_URL = 'http://autoscroll.cutefool.net';
+          //var BASE_URL = 'http://localhost:8081';
+          var validate_email = function(str) {
+            if( ! str ) return false;
+            return /\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*/.test(str);
+          };
+          var validate_password = function(str) {
+            str = $.trim(str);
+            if( ! str ) return false;
+            if( str.length < 6 ) return false;
+            return /^\w+$/.test(str);
+          };
+          jQuery('#btn_login').click(function(){
+              var email = jQuery('#email').val();
+              var password = jQuery('#password').val();
+
+              if(!validate_email(email)){$('#message').text('invalidate email');return false;}
+              if(!validate_password(password)){$('#message').text('invalidate password');return false;}
+
+              //TODO:输入验证
+              jQuery.ajax({
+                'type' : 'get',
+                'url' : BASE_URL + '/login',
+                'dataType' : 'json',
+                'data' : {'email' : email , 'password' : password},
+                'success' : function(obj) {
+                  if( obj.code != 0 ) {
+                    $('#message').html(obj.msg);
+                    return false;
+                  }
+                  //TODO:send message to background
+                  bkg.settings.setToken(obj.data.token);
+                  $('#message').html('success !');
+                  on_the_cloud();
+                },
+                'error' : function(obj) {
+                  $('#message').html(obj);
                 }
-                $('#message').html(obj.data.token);
-                //TODO:send message to background
-              },
-              'error' : function(obj) {
-                $('#message').html(obj.msg);
-              }
-            });
-        });
+              });
+          });
+        }
     });
 </script>

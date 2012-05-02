@@ -1,6 +1,26 @@
+
 var log = function(obj) {
   console.log(obj);
 };
+var settings = {
+  'token' : (function(){return localStorage.token ? localStorage.token : undefined;})(),
+  'setToken' : function(token) {
+      if(token) {
+        localStorage.token = token;
+      }
+  }
+};
+
+var logout = function() {
+    log('log out ...');
+    localStorage.token = undefined;
+    localStorage.memories = undefined;
+    delete localStorage.token;
+    delete localStorage.memories;
+};
+
+var BASE_URL = 'http://autoscroll.cutefool.net';
+//var BASE_URL = 'http://localhost:8081';
 
 var tabIds = {};
 
@@ -13,6 +33,14 @@ var get_memories = function(){
     return {};
   }
   return JSON.parse(localStorage.memories);
+};
+
+//判断是否空对象
+var is_empty_object = function(obj) {
+  for( m in obj ) {
+    return false;
+  }
+  return true;
 };
 
 var merge_data = function(params){
@@ -31,18 +59,21 @@ var merge_data = function(params){
 var download_data = function(params){
   jQuery.ajax({
     'type' : 'get',
-    'url' : 'http://autoscroll.cutefool.net/download',
+    'url' : BASE_URL + '/download',
     'dataType' : 'json',
     'data' : {'key' : params.key},
     'success' : function(obj) {
       if(obj.code != 0 ) {
         log(obj.msg);return false;
       }
-      merge_data({'local' : get_memories() , 'server' : JSON.parse(obj.data) , 'method' : 0});
+
+      //merge_data({'local' : get_memories() , 'server' : JSON.parse(obj.data) , 'method' : 0});
+      if( !is_empty_object(get_memories()) ) {
+        log('local data is not empty');
+      }
     },
     'error' : function(obj) {
       log('error');
-      log(obj);
     }
   });
 };
@@ -53,27 +84,29 @@ var upload_data = function(params){
   var memories = get_memories();
   jQuery.ajax({
     'type' : 'get',
-    'url' : 'http://autoscroll.cutefool.net/store',
+    'url' : BASE_URL + '/upload',
     'dataType' : 'json',
-    'data' : 'data=' + JSON.stringify(memories),
+    'data' : {'token' : params.token , 'data' : JSON.stringify(memories)},
     'success' : function(obj) {
       log('upload success');
     },
     'erroe' : function(obj) {
       log('upload error');
-      log(obj);
     }
   });
 };
 
-download_data({
-  'key' : 'xyn0563@gmail.com'
-});
+if(localStorage.token) {
+  download_data({
+    'key' : localStorage.token 
+  });
+}
 
 //tab 关闭时，将localStorage同步至服务器
 chrome.tabs.onRemoved.addListener(function(tabId) {
-  if(tabIds[tabId]) {
+  if(tabIds[tabId] && localStorage.token) {
     upload_data({
+      'token' : localStorage.token
     });
   }
 });
@@ -86,7 +119,6 @@ chrome.tabs.onUpdated.addListener(function(tabId , updateInfo , tab) {
   //show page action while tab is open
   //TODO:建立显示page action的规则
   chrome.pageAction.show(tabId);
-  log(memories);
   if( memories[loc] ) {
     tabIds[tabId] = 1;//记录tabId，标识是被记录的页面
     chrome.pageAction.setIcon({
@@ -96,7 +128,7 @@ chrome.tabs.onUpdated.addListener(function(tabId , updateInfo , tab) {
     chrome.pageAction.show(tabId);
     chrome.pageAction.setTitle({
       'tabId' : tabId,
-      title : 'disable auto scroll for this page'
+      'title' : 'disable auto scroll for this page'
     });
     if( !memories[loc].percent ) {
       log('forget ' + loc);
@@ -148,14 +180,24 @@ chrome.pageAction.onClicked.addListener(function(tab) {
 //接收页面传来的数据
 chrome.extension.onRequest.addListener(
   function(request, sender, sendResponse) {
-    var memories = get_memories();
-    var memory = JSON.parse(request.memory);
+    if(request.page && request.page == 'options') {
+      localStorage.token = request.token;
+      //登录完成后共获取数据
+      log('download data ...');
+      download_data({
+        'key' : localStorage.token 
+      });
+    }else {
+      var memories = get_memories();
+      var memory = JSON.parse(request.memory);
 
-    if( memories[memory.loc]) {
-      //接收页面消息，更新滚动位置
-      memories[memory.loc].percent = memory.percent;
-      update_memories(memories);
-    }
-    else {
+      if( memories[memory.loc]) {
+        //接收页面消息，更新滚动位置
+        memories[memory.loc].percent = memory.percent;
+        update_memories(memories);
+      }
+      else {
+      }
+    
     }
 });
