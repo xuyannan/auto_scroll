@@ -3,7 +3,9 @@ var log = function(obj) {
   console.log(obj);
 };
 var settings = {
-  'token' : (function(){return localStorage.token ? localStorage.token : undefined;})(),
+  'getToken' : function(){
+      return localStorage.token ? localStorage.token : undefined;
+  },
   'setToken' : function(token) {
       if(token) {
         localStorage.token = token;
@@ -67,7 +69,7 @@ var download_data = function(params){
         log(obj.msg);return false;
       }
 
-      //merge_data({'local' : get_memories() , 'server' : JSON.parse(obj.data) , 'method' : 0});
+      merge_data({'local' : get_memories() , 'server' : JSON.parse(obj.data) , 'method' : 0});
       if( !is_empty_object(get_memories()) ) {
         log('local data is not empty');
       }

@@ -14,11 +14,15 @@ Scroll the page to the position that you left last time
 
 1.改为page_action实现 (done)
 
-2.云存储
+2.云存储 (done)
 
 3.弄个好看点的logo
 
 # change log
+
+## v0.3
+
+允许用户注册，在插件的设置页中登录，通过账户进行数据同步。
 
 ## v0.2
 

@@ -28,7 +28,7 @@
               $('#login').show();
           });
         };
-        if(bkg.settings.token) {
+        if(bkg.settings.getToken()) {
           on_the_cloud();
           return false;
         }else {
@@ -65,6 +65,9 @@
                   }
                   //TODO:send message to background
                   bkg.settings.setToken(obj.data.token);
+                  bkg.download_data({
+                      'key' : obj.data.token
+                  });
                   $('#message').html('success !');
                   on_the_cloud();
                 },
